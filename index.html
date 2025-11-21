@@ -1,0 +1,1009 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drawing Quiz: True or False</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 30px rgba(34, 197, 94, 0.6); }
+            50% { box-shadow: 0 0 50px rgba(34, 197, 94, 0.9); }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes drawingPulse {
+            0%, 100% { border-color: rgba(59, 130, 246, 0.5); }
+            50% { border-color: rgba(59, 130, 246, 1); }
+        }
+        
+        @keyframes blinkYellow {
+            0%, 100% { 
+                color: #fbbf24;
+            }
+            50% { 
+                color: #fde047;
+            }
+        }
+        
+        @keyframes blinkGreen {
+            0%, 100% { 
+                color: #10b981;
+            }
+            50% { 
+                color: #34d399;
+            }
+        }
+        
+        @keyframes blinkRed {
+            0%, 100% { 
+                color: #ef4444;
+            }
+            50% { 
+                color: #f87171;
+            }
+        }
+        
+        .pulse { animation: pulse 2s infinite; }
+        .bounce { animation: bounce 0.6s ease-in-out; }
+        .shake { animation: shake 0.5s ease-in-out; }
+        .glow { animation: glow 1.5s ease-in-out infinite; }
+        .slide-in { animation: slideIn 0.5s ease-out; }
+        .rainbow { 
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: rainbow 3s ease infinite;
+        }
+        
+        .drawing-canvas {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+            border: 4px solid rgba(59, 130, 246, 0.3);
+            backdrop-filter: blur(10px);
+            cursor: crosshair;
+            transition: all 0.3s ease;
+        }
+        
+        .drawing-canvas.active {
+            animation: drawingPulse 2s infinite;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+        }
+        
+        .drawing-canvas.correct {
+            border-color: #10b981;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            animation: glow 1s ease-in-out;
+        }
+        
+        .drawing-canvas.incorrect {
+            border-color: #ef4444;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        .question-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+        }
+        
+        .score-display {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.2));
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        
+        .progress-container {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .control-button {
+            background: linear-gradient(145deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+            border: 2px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(15px);
+            transition: all 0.3s ease;
+        }
+        
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            border-color: rgba(255,255,255,0.6);
+        }
+        
+        .shape-hint {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(59, 130, 246, 0.2));
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .detection-feedback {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(5, 150, 105, 0.2));
+            border: 2px solid rgba(16, 185, 129, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        
+        .blinking-yellow {
+            animation: blinkYellow 1.5s ease-in-out infinite;
+        }
+        
+        .blinking-green {
+            animation: blinkGreen 1.5s ease-in-out infinite;
+        }
+        
+        .blinking-red {
+            animation: blinkRed 1.5s ease-in-out infinite;
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-600 font-sans">
+  <main class="min-h-full p-4"><!-- Title Screen -->
+   <div id="title-screen" class="max-w-4xl mx-auto text-center">
+    <div class="question-card rounded-3xl p-12">
+     <div class="slide-in">
+      <div class="text-9xl mb-8 bounce">
+       🎯
+      </div>
+      <h1 class="text-6xl font-bold text-white mb-6 rainbow bg-clip-text text-transparent">Drawing Quiz: False or True</h1>
+      <h2 class="text-4xl text-white/90 mb-12 font-semibold">Tema: Kisah Nabi Muhammad Saw.</h2>
+      <p class="text-2xl text-white/80 mb-8 leading-relaxed">Gambar simbol ✓ untuk jawaban <strong>benar</strong>!<br>
+        Gambar simbol ✗ untuk jawaban <strong>salah</strong>!</p><button onclick="startGame()" class="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-16 py-6 rounded-3xl font-bold text-2xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-2xl pulse"> 🚀 Mulai Bermain </button>
+     </div>
+    </div>
+   </div><!-- Game Screen -->
+   <div id="game-screen" class="max-w-6xl mx-auto" style="display: none;"><!-- Score & Progress Bar -->
+    <div class="grid grid-cols-2 gap-6 mb-6 slide-in">
+     <div class="score-display rounded-3xl px-6 py-3 text-white font-bold text-xl text-center">
+      🏆 Skor: <span id="score" class="text-yellow-300 text-2xl">0</span>
+     </div>
+     <div class="progress-container rounded-3xl px-6 py-3 text-white font-semibold text-center">
+      <div class="text-base mb-2">
+       Pertanyaan <span id="current-q" class="font-bold text-yellow-300">1</span> dari <span id="total-q" class="font-bold text-yellow-300">5</span>
+      </div>
+      <div class="bg-white/20 rounded-full h-2 overflow-hidden">
+       <div id="progress-bar" class="rainbow h-full transition-all duration-1000 ease-out" style="width: 20%"></div>
+      </div>
+     </div>
+    </div><!-- Main Content - Horizontal Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 slide-in"><!-- Left Side - Question -->
+     <div class="order-1 lg:order-1">
+      <div class="question-card rounded-3xl p-8 h-full flex flex-col justify-center">
+       <div class="text-center">
+        <div class="text-6xl mb-6">
+         ❓
+        </div>
+        <h2 id="statement" class="text-white text-3xl font-bold leading-relaxed mb-8">Nabi Muhammad SAW lahir pada tahun Gajah.</h2><!-- Feedback Area -->
+        <div id="feedback" class="question-card rounded-2xl px-6 py-4 text-white font-bold text-xl min-h-[60px] flex items-center justify-center"><span class="blinking-yellow">Mendeteksi jawaban... ✨</span>
+        </div>
+       </div>
+      </div>
+     </div><!-- Right Side - Drawing Area -->
+     <div class="order-2 lg:order-2">
+      <div class="question-card rounded-3xl p-6 h-full">
+       <h3 class="text-white text-xl font-bold mb-6 text-center">✏️ Tuliskan jawabanmu di sini!</h3>
+       <canvas id="drawing-canvas" class="drawing-canvas rounded-2xl mx-auto block mb-4" width="500" height="350">
+       </canvas><!-- Canvas Controls -->
+       <div class="flex justify-center gap-4 mb-4"><button id="clear-btn" onclick="clearCanvas()" class="control-button text-white px-6 py-3 rounded-2xl font-bold hover:scale-105 transition-transform"> 🗑️ Hapus &amp; Gambar Ulang </button>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </main>
+  <script>
+        let score = 0;
+        let currentQuestion = 0;
+        let answered = false;
+        let canvas, ctx;
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let drawnPaths = [];
+        
+        const allQuestions = [
+            // Kelahiran Nabi Muhammad Saw.
+            {
+                statement: "Nabi Muhammad Saw. lahir pada Tahun Gajah.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. lahir di Kota Madinah.",
+                isTrue: false
+            },
+            {
+                statement: "Ayahanda Nabi Muhammad Saw. bernama Abdullah.",
+                isTrue: true
+            },
+            {
+                statement: "Ayahanda Nabi Muhammad Saw. bernama Abu Bakar.",
+                isTrue: false
+            },
+            {
+                statement: "Ibunda Nabi Muhammad Saw. bernama Aminah.",
+                isTrue: true
+            },
+            {
+                statement: "Ibu Nabi Muhammad Saw. bernama Khadijah.",
+                isTrue: false
+            },
+            {
+                statement: "Nabi Muhammad Saw. lahir pada bulan Rabiul Awwal.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. lahir pada bulan Ramadhan.",
+                isTrue: false
+            },
+            {
+                statement: "Kakek Nabi Muhammad Saw. bernama Abdul Muthalib.",
+                isTrue: true
+            },
+            {
+                statement: "Kakek Nabi Muhammad Saw. bernama Abu Thalib.",
+                isTrue: false
+            },
+            
+            // Masa Kecil
+            {
+                statement: "Saat kecil, Nabi Muhammad Saw. diasuh oleh Halimah As-Sa'diyah.",
+                isTrue: true
+            },
+            {
+                statement: "Halimah As-Sa'diyah adalah ibu kandung Nabi Muhammad Saw.",
+                isTrue: false
+            },
+            {
+                statement: "Nabi Muhammad Saw. menjadi yatim saat berusia 6 tahun.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. menjadi yatim piatu sejak lahir.",
+                isTrue: false
+            },
+            {
+                statement: "Setelah ibunda beliau meninggal, Nabi Muhammad Saw. oleh diasuh kakeknya.",
+                isTrue: true
+            },
+            {
+                statement: "Setelah ibunda beliau meninggal, Nabi Muhammad Saw. diasuh pamannya.",
+                isTrue: false
+            },
+            {
+                statement: "Abdul Muthalib meninggal saat Nabi Muhammad Saw. berusia 8 tahun.",
+                isTrue: true
+            },
+            {
+                statement: "Abdul Muthalib meninggal saat Nabi Muhammad Saw. berusia 10 tahun.",
+                isTrue: false
+            },
+            {
+                statement: "Setelah kakek beliau meninggal, Abu Thalib mengasuh Nabi Muhammad Saw.",
+                isTrue: true
+            },
+            {
+                statement: "Setelah kakek beliau meninggal, Abbas mengasuh Nabi Muhammad Saw.",
+                isTrue: false
+            },
+            
+            // Masa Remaja
+            {
+                statement: "Nabi Muhammad Saw. dikenal dengan sebutan Al-Amin.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. dikenal dengan sebutan Al-Faruq.",
+                isTrue: false
+            },
+            {
+                statement: "Al-Amin artinya orang yang dapat dipercaya.",
+                isTrue: true
+            },
+            {
+                statement: "Al-Amin artinya orang yang pemberani.",
+                isTrue: false
+            },
+            {
+                statement: "Saat remaja, Nabi Muhammad Saw. bekerja sebagai pedagang.",
+                isTrue: true
+            },
+            {
+                statement: "Sejak kecil, Nabi Muhammad Saw. bekerja sebagai prajurit.",
+                isTrue: false
+            },
+            {
+                statement: "Nabi Muhammad Saw. sering berdagang ke Negeri Syam.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. sering berdagang ke Negeri Mesir.",
+                isTrue: false
+            },
+            {
+                statement: "Semasa kecil, Nabi Muhammad Saw. pernah menggembala domba.",
+                isTrue: true
+            },
+            {
+                statement: "Ayahanda Nabi Muhammad Saw. meninggal saat terjadi penyerbuan Pasukan Bergajah.",
+                isTrue: false
+            },
+            {
+                statement: "Ka'bah sempat akan dihancurkan oleh Raja Abrahah.",
+                isTrue: true
+            },
+            {
+                statement: "Allah menurunkan hujan petir untuk menghancurkan Pasukan Bergajah.",
+                isTrue: false
+            },
+            {
+                statement: "Raja Abrahah berasal dari Negeri Yaman.",
+                isTrue: true
+            },
+            {
+                statement: "Raja Abrahah menyerang Kota Mekkah menggunakan kapal perang.",
+                isTrue: false
+            },
+            
+            // Sifat dan Karakter
+            {
+                statement: "Nabi Muhammad Saw. tidak pernah menyembah berhala.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. pernah menyembah berhala sebelum menjadi nabi.",
+                isTrue: false
+            },
+            {
+                statement: "Nabi Muhammad Saw. sering menyendiri di Gua Hira.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. sering menyendiri di Gua Tsur.",
+                isTrue: false
+            },
+            {
+                statement: "Nabi Muhammad Saw. dikenal jujur dalam berdagang.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. pernah menipu dalam berdagang.",
+                isTrue: false
+            },
+            {
+                statement: "Nabi Muhammad Saw. suka menolong orang yang kesusahan.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. hanya menolong keluarganya saja.",
+                isTrue: false
+            },
+            
+            // Keluarga dan Keturunan
+            {
+                statement: "Nabi Muhammad Saw. memiliki anak perempuan bernama Fatimah.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. memiliki anak perempuan bernama Aisyah.",
+                isTrue: false
+            },
+            {
+                statement: "Nabi Muhammad Saw. memiliki anak laki-laki bernama Ibrahim.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. memiliki anak laki-laki bernama Ali.",
+                isTrue: false
+            },
+            {
+                statement: "Zainab adalah putri Nabi Muhammad Saw.",
+                isTrue: true
+            },
+            {
+                statement: "Hafshah adalah putri Nabi Muhammad Saw.",
+                isTrue: false
+            },
+            {
+                statement: "Ruqayyah adalah putri Nabi Muhammad Saw.",
+                isTrue: true
+            },
+            {
+                statement: "Ummu Kultsum adalah putri Nabi Muhammad Saw.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. memiliki 4 anak perempuan.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. memiliki 3 anak perempuan.",
+                isTrue: false
+            },
+            
+            // Peristiwa Penting
+            {
+                statement: "Nabi Muhammad Saw. ikut dalam perang Fijar saat remaja.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. memimpin perang Fijar.",
+                isTrue: false
+            },
+            {
+                statement: "Nabi Muhammad Saw. ikut dalam Hilf al-Fudhul.",
+                isTrue: true
+            },
+            {
+                statement: "Hilf al-Fudhul adalah perjanjian perdagangan.",
+                isTrue: false
+            },
+            {
+                statement: "Nabi Muhammad Saw. membantu meletakkan Hajar Aswad.",
+                isTrue: true
+            },
+            {
+                statement: "Nabi Muhammad Saw. menolak meletakkan Hajar Aswad.",
+                isTrue: false
+            }
+        ];
+        
+        let questions = [];
+        
+        function selectRandomQuestions() {
+            // Shuffle array and take first 10
+            const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+            questions = shuffled.slice(0, 10);
+        }
+
+        // Default config for Element SDK
+        const defaultConfig = {
+            quiz_title: "✏️ Drawing Quiz: True or False",
+            instruction_text: "Gambar bentuk yang diminta untuk menjawab pertanyaan!",
+            welcome_message: "Selamat datang di kuis menggambar yang seru!"
+        };
+
+        function initCanvas() {
+            canvas = document.getElementById('drawing-canvas');
+            ctx = canvas.getContext('2d');
+            
+            // Set canvas style
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Mouse events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Touch events for mobile
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+            
+            canvas.classList.add('active');
+        }
+        
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            if (e.type === 'touchstart') {
+                startDrawing({ offsetX: x, offsetY: y });
+            } else if (e.type === 'touchmove') {
+                draw({ offsetX: x, offsetY: y });
+            }
+        }
+        
+        function startDrawing(e) {
+            if (answered) return;
+            
+            isDrawing = true;
+            lastX = e.offsetX;
+            lastY = e.offsetY;
+            
+            // Start new path
+            drawnPaths.push([{ x: lastX, y: lastY }]);
+        }
+        
+        function draw(e) {
+            if (!isDrawing || answered) return;
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+            
+            // Add point to current path
+            const currentPath = drawnPaths[drawnPaths.length - 1];
+            currentPath.push({ x: e.offsetX, y: e.offsetY });
+            
+            lastX = e.offsetX;
+            lastY = e.offsetY;
+            
+            // Real-time shape detection
+            detectShapeRealTime();
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        function clearCanvas() {
+            if (answered) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawnPaths = [];
+        }
+        
+        let detectionTimeout = null;
+        
+        function detectShapeRealTime() {
+            if (drawnPaths.length === 0 || answered) return;
+            
+            // Clear previous timeout
+            if (detectionTimeout) {
+                clearTimeout(detectionTimeout);
+                detectionTimeout = null;
+            }
+            
+            const detectedShape = analyzeDrawing();
+            const feedback = document.getElementById('detection-feedback');
+            
+            if (detectedShape === 'checkmark') {
+                // Auto-submit after detecting clear shape
+                detectionTimeout = setTimeout(() => {
+                    if (!answered && analyzeDrawing() === 'checkmark') {
+                        handleAnswer('checkmark');
+                    }
+                }, 2500);
+                
+            } else if (detectedShape === 'cross') {
+                // Auto-submit after detecting clear shape
+                detectionTimeout = setTimeout(() => {
+                    if (!answered && analyzeDrawing() === 'cross') {
+                        handleAnswer('cross');
+                    }
+                }, 2500);
+            }
+        }
+        
+        function analyzeDrawing() {
+            if (drawnPaths.length === 0) return 'unknown';
+            
+            // Combine all paths into one array of points
+            let allPoints = [];
+            drawnPaths.forEach(path => {
+                allPoints = allPoints.concat(path);
+            });
+            
+            if (allPoints.length < 10) return 'unknown';
+            
+            // Calculate bounding box
+            const minX = Math.min(...allPoints.map(p => p.x));
+            const maxX = Math.max(...allPoints.map(p => p.x));
+            const minY = Math.min(...allPoints.map(p => p.y));
+            const maxY = Math.max(...allPoints.map(p => p.y));
+            
+            const width = maxX - minX;
+            const height = maxY - minY;
+            const centerX = (minX + maxX) / 2;
+            const centerY = (minY + maxY) / 2;
+            
+            // Minimum size requirement
+            if (width < 30 || height < 30) return 'unknown';
+            
+            // Analyze for checkmark pattern
+            const checkmarkScore = analyzeCheckmark(allPoints, minX, maxX, minY, maxY);
+            
+            // Analyze for cross pattern
+            const crossScore = analyzeCross(allPoints, minX, maxX, minY, maxY, centerX, centerY);
+            
+            // Determine shape based on scores
+            if (checkmarkScore > 0.3) {
+                return 'checkmark';
+            } else if (crossScore > 0.4) {
+                return 'cross';
+            }
+            
+            return 'unknown';
+        }
+        
+        function analyzeCheckmark(points, minX, maxX, minY, maxY) {
+            const width = maxX - minX;
+            const height = maxY - minY;
+            
+            // Checkmark should have two main strokes: down-left to center, then up-right
+            // Look for a "V" shape that's rotated
+            
+            // Divide into left and right halves
+            const midX = (minX + maxX) / 2;
+            const leftPoints = points.filter(p => p.x <= midX);
+            const rightPoints = points.filter(p => p.x >= midX);
+            
+            if (leftPoints.length < 3 || rightPoints.length < 3) return 0;
+            
+            // For checkmark, expect:
+            // - Left side: points going from top-left area to bottom-center
+            // - Right side: points going from bottom-center to top-right area
+            
+            let leftDownwardTrend = 0;
+            let rightUpwardTrend = 0;
+            
+            // Check left side for downward trend
+            for (let i = 1; i < leftPoints.length; i++) {
+                if (leftPoints[i].y > leftPoints[i-1].y && leftPoints[i].x >= leftPoints[i-1].x) {
+                    leftDownwardTrend++;
+                }
+            }
+            
+            // Check right side for upward trend
+            for (let i = 1; i < rightPoints.length; i++) {
+                if (rightPoints[i].y < rightPoints[i-1].y && rightPoints[i].x >= leftPoints[i-1].x) {
+                    rightUpwardTrend++;
+                }
+            }
+            
+            const leftScore = leftDownwardTrend / Math.max(leftPoints.length - 1, 1);
+            const rightScore = rightUpwardTrend / Math.max(rightPoints.length - 1, 1);
+            
+            // Look for junction point (lowest point should be roughly in center)
+            const lowestPoint = points.reduce((lowest, point) => 
+                point.y > lowest.y ? point : lowest
+            );
+            
+            const junctionScore = (lowestPoint.x > minX + width * 0.3 && 
+                                 lowestPoint.x < minX + width * 0.7) ? 0.3 : 0;
+            
+            return (leftScore + rightScore) / 2 + junctionScore;
+        }
+        
+        function analyzeCross(points, minX, maxX, minY, maxY, centerX, centerY) {
+            const width = maxX - minX;
+            const height = maxY - minY;
+            
+            // Cross should have two intersecting lines
+            // Look for points in all four quadrants relative to center
+            
+            const topLeft = points.filter(p => p.x < centerX && p.y < centerY);
+            const topRight = points.filter(p => p.x > centerX && p.y < centerY);
+            const bottomLeft = points.filter(p => p.x < centerX && p.y > centerY);
+            const bottomRight = points.filter(p => p.x > centerX && p.y > centerY);
+            
+            // Cross should have points in opposite quadrants
+            const hasTopLeftBottomRight = topLeft.length > 0 && bottomRight.length > 0;
+            const hasTopRightBottomLeft = topRight.length > 0 && bottomLeft.length > 0;
+            
+            if (!hasTopLeftBottomRight && !hasTopRightBottomLeft) return 0;
+            
+            // Check for diagonal patterns
+            let diagonalScore = 0;
+            
+            // Check main diagonal (top-left to bottom-right)
+            if (hasTopLeftBottomRight) {
+                const diagonal1Points = [...topLeft, ...bottomRight].sort((a, b) => a.x - b.x);
+                let diagonal1Trend = 0;
+                
+                for (let i = 1; i < diagonal1Points.length; i++) {
+                    const slope = (diagonal1Points[i].y - diagonal1Points[i-1].y) / 
+                                 (diagonal1Points[i].x - diagonal1Points[i-1].x);
+                    if (slope > 0) diagonal1Trend++;
+                }
+                
+                diagonalScore += diagonal1Trend / Math.max(diagonal1Points.length - 1, 1);
+            }
+            
+            // Check anti-diagonal (top-right to bottom-left)
+            if (hasTopRightBottomLeft) {
+                const diagonal2Points = [...topRight, ...bottomLeft].sort((a, b) => a.x - b.x);
+                let diagonal2Trend = 0;
+                
+                for (let i = 1; i < diagonal2Points.length; i++) {
+                    const slope = (diagonal2Points[i].y - diagonal2Points[i-1].y) / 
+                                 (diagonal2Points[i].x - diagonal2Points[i-1].x);
+                    if (slope < 0) diagonal2Trend++;
+                }
+                
+                diagonalScore += diagonal2Trend / Math.max(diagonal2Points.length - 1, 1);
+            }
+            
+            // Check for center convergence
+            let centerScore = 0;
+            const centerTolerance = Math.min(width, height) * 0.3;
+            
+            points.forEach(point => {
+                const distToCenter = Math.sqrt(Math.pow(point.x - centerX, 2) + Math.pow(point.y - centerY, 2));
+                if (distToCenter < centerTolerance) {
+                    centerScore++;
+                }
+            });
+            
+            const centerRatio = centerScore / points.length;
+            
+            return (diagonalScore / 2) * 0.7 + centerRatio * 0.3;
+        }
+        
+
+        
+        function handleAnswer(shape) {
+            if (answered) return;
+            
+            answered = true;
+            const currentQ = questions[currentQuestion];
+            
+            // Determine if answer is correct
+            // checkmark = true (BENAR), cross = false (SALAH)
+            const userAnswer = shape === 'checkmark';
+            const isCorrect = userAnswer === currentQ.isTrue;
+            
+            const canvas = document.getElementById('drawing-canvas');
+            const feedback = document.getElementById('feedback');
+            
+            // Disable canvas
+            canvas.style.pointerEvents = 'none';
+            canvas.classList.remove('active');
+            
+            if (isCorrect) {
+                canvas.classList.add('correct');
+                feedback.innerHTML = '<span class="blinking-green">🎉 Jawabanmu Benar!</span>';
+                feedback.classList.add('bounce');
+                
+                score += 10;
+                document.getElementById('score').textContent = score;
+                document.getElementById('score').parentElement.classList.add('bounce');
+                
+                // Add celebration effect
+                createConfetti();
+                
+            } else {
+                canvas.classList.add('incorrect');
+                feedback.innerHTML = '<span class="blinking-red">❌ Jawabanmu Salah!</span>';
+                feedback.classList.add('shake');
+            }
+            
+            // Auto-advance to next question
+            setTimeout(() => {
+                nextQuestion();
+            }, 3000);
+        }
+        
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.top = '-10px';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.borderRadius = '50%';
+                    confetti.style.pointerEvents = 'none';
+                    confetti.style.zIndex = '9999';
+                    confetti.style.animation = 'fall 3s linear forwards';
+                    
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 3000);
+                }, i * 50);
+            }
+        }
+        
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion >= questions.length) {
+                showFinalScore();
+                return;
+            }
+            
+            // Reset for next question
+            answered = false;
+            
+            // Clear canvas states
+            const canvas = document.getElementById('drawing-canvas');
+            canvas.classList.remove('correct', 'incorrect');
+            canvas.style.pointerEvents = 'auto';
+            canvas.classList.add('active');
+            
+            // Clear canvas
+            clearCanvas();
+            
+            // Clear feedback
+            const feedback = document.getElementById('feedback');
+            feedback.innerHTML = '<span class="blinking-yellow">Mendeteksi jawaban... ✨</span>';
+            feedback.classList.remove('bounce', 'shake');
+            
+            // Clear score animation
+            document.getElementById('score').parentElement.classList.remove('bounce');
+            
+            // Load new question with animation
+            setTimeout(() => {
+                loadQuestion();
+                updateProgress();
+            }, 300);
+        }
+        
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            
+            // Animate question change
+            const statementEl = document.getElementById('statement');
+            statementEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                statementEl.textContent = q.statement;
+                
+                statementEl.style.opacity = '1';
+                statementEl.classList.add('slide-in');
+            }, 150);
+        }
+        
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+            document.getElementById('current-q').textContent = currentQuestion + 1;
+            document.getElementById('total-q').textContent = questions.length;
+        }
+        
+        function showFinalScore() {
+            const main = document.querySelector('main');
+            const percentage = Math.round((score / (questions.length * 10)) * 100);
+            
+            main.innerHTML = `
+                <div class="max-w-4xl mx-auto text-center">
+                    <div class="question-card rounded-3xl p-12">
+                        <div class="slide-in">
+                            <div class="text-9xl mb-8 bounce">🏆</div>
+                            <h1 class="text-6xl font-bold text-white mb-6 rainbow bg-clip-text text-transparent">
+                                Kuis Selesai!
+                            </h1>
+                            <div class="text-9xl font-bold text-white mb-6 glow">
+                                ${score}
+                            </div>
+                            <p class="text-3xl text-white/90 mb-6">
+                                Skor akhir dari 100 poin (${percentage}%)
+                            </p>
+                            <div class="mb-8">
+                                ${percentage >= 80 ? 
+                                    '<p class="text-green-300 font-bold text-3xl">🌟 Luar Biasa! Kamu Terbaik! 🌟</p>' : 
+                                    percentage >= 60 ? 
+                                    '<p class="text-blue-300 font-bold text-3xl">👍 Bagus! Kamu Hebat! 👍</p>' : 
+                                    percentage >= 40 ?
+                                    '<p class="text-yellow-300 font-bold text-3xl">💪 Lumayan! Terus berlatih! 💪</p>' :
+                                    '<p class="text-orange-300 font-bold text-3xl">🎯 Jangan Menyerah! Coba Lagi! 🎯</p>'
+                                }
+                            </div>
+                            <button onclick="location.reload()" 
+                                    class="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-16 py-6 rounded-3xl font-bold text-2xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-2xl">
+                                🔄 Main Lagi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add final confetti
+            setTimeout(() => {
+                createConfetti();
+            }, 500);
+        }
+
+        // Element SDK Implementation
+        async function onConfigChange(config) {
+            const quizTitle = config.quiz_title || defaultConfig.quiz_title;
+            const instructionText = config.instruction_text || defaultConfig.instruction_text;
+            const welcomeMessage = config.welcome_message || defaultConfig.welcome_message;
+
+            // Update UI elements
+            const titleElement = document.getElementById('quiz-title');
+            const instructionElement = document.getElementById('instruction-text');
+            const welcomeElement = document.getElementById('welcome-message');
+
+            if (titleElement) titleElement.textContent = quizTitle;
+            if (instructionElement) instructionElement.textContent = instructionText;
+            if (welcomeElement) welcomeElement.textContent = welcomeMessage;
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [],
+                borderables: [],
+                fontEditable: undefined,
+                fontSizeable: undefined
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["quiz_title", config.quiz_title || defaultConfig.quiz_title],
+                ["instruction_text", config.instruction_text || defaultConfig.instruction_text],
+                ["welcome_message", config.welcome_message || defaultConfig.welcome_message]
+            ]);
+        }
+
+        // Initialize Element SDK
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig,
+                onConfigChange,
+                mapToCapabilities,
+                mapToEditPanelValues
+            });
+        }
+
+        // Add CSS for confetti animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                0% {
+                    transform: translateY(-100vh) rotate(0deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        function startGame() {
+            document.getElementById('title-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            
+            selectRandomQuestions();
+            initCanvas();
+            loadQuestion();
+            updateProgress();
+        }
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show title screen first
+        });
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99fed55147bee9d3',t:'MTc2MzM3ODM2OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
